@@ -1,0 +1,62 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+    - name: Install dependencies
+      run: sudo apt install lld
+    - name: Check compilation
+      run: cargo check --workspace --verbose
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+        fail-fast: false
+        matrix:
+          build_type: [{name: "Release", flag: "--release"}, {name: "Debug", flag: ""}]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+    - uses: Swatinem/rust-cache@v1
+      with:
+        key: ${{ matrix.build_type.name }}-${{ matrix.features }}
+    - name: Install dependencies
+      run: sudo apt install lld
+    - name: Build & Test
+      run: cargo test --workspace ${{ matrix.build_type.flag }} --features "${{ matrix.features }}"
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y python3 python3-pip git lld
+        pip install pre-commit
+    - name: Pre-commit
+      run: |
+        pre-commit install --install-hooks
+        pre-commit run --all --show-diff-on-failure
