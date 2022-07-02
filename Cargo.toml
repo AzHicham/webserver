@@ -21,12 +21,17 @@ members = []
 default = []
 
 [dependencies]
+config = "0.13"
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
 tracing = { version = "0.1", features = ["std", "release_max_level_info"] }
 static_assertions = "1.1.0"
-serde = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 regex = "1"
+tokio = { version = "1.14.0", features = [ "sync", "rt", "rt-multi-thread", "macros", "process" ] }
+num_cpus = "1"
 lazy_static = "1"
+rocket = { version = "0.5.0-rc.2", features = ["serde_json", "json"] }
+anyhow = "1"
 
 [profile.dev]
 opt-level = 1
