@@ -1,5 +1,5 @@
-use anyhow::debug;
 use anyhow::Error;
+use tracing::debug;
 use webserver::server::run;
 use webserver::settings::Settings;
 
