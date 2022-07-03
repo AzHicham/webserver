@@ -6,3 +6,8 @@ workers = 1
 [database]
 url = "postgres://postgres@localhost"
 
+[logger]
+file = "/tmp/webserver.log"
+
+[broker]
+address = "redis://127.0.0.1:6379/"

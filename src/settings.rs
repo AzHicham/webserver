@@ -1,12 +1,18 @@
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::env;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Deserialize)]
 pub struct Server {
     pub host: String,
     pub port: u16,
     pub workers: u16,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Logger {
+    pub file: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -18,6 +24,13 @@ pub struct Database {
 pub struct Settings {
     pub server: Server,
     pub database: Database,
+    pub logger: Logger,
+    pub broker: Broker,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Broker {
+    pub address: String,
 }
 
 impl Settings {
