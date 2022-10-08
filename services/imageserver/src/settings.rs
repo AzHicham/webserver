@@ -1,4 +1,4 @@
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, ConfigError, Environment, File, FileFormat};
 use serde::Deserialize;
 use std::env;
 use std::path::{Path, PathBuf};
@@ -37,10 +37,9 @@ impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let run_mode = env::var("WEBSERVER_CONFIG_MODE").unwrap_or_else(|_| "development".into());
         let config_dir = env::var("WEBSERVER_CONFIG_DIR").unwrap_or_else(|_| "config".into());
-
         let s = Config::builder()
             // Start off by merging in the "default" configuration file
-            .add_source(File::with_name(&format!("{}/default", config_dir)))
+            .add_source(File::new("config/default", FileFormat::Toml))
             // Add in the current environment file
             // Default to 'development' env
             // Note that this file is _optional_

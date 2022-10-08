@@ -1,0 +1,28 @@
+[package]
+name = "webserver"
+description = "Simple REST webserver"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[features]
+default = []
+
+[dependencies]
+config = "0.13"
+anyhow = "1"
+tracing = { version = "0.1", features = ["std", "release_max_level_info"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+rocket = { version = "0.5.0-rc.2", features = ["serde_json", "json"] }
+celery = "0.4.0-rcn.11"
+
+
+
+[[bin]]
+name = "webserver"
+path = "src/main.rs"

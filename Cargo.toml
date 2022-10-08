@@ -1,34 +1,18 @@
-[package]
-name = "webserver"
+[workspace]
+members = [
+    "services/webserver",
+    "services/imageserver"
+]
+
+[workspace.package]
 version = "0.1.0"
 authors = ["Hicham Azimani <hicham.azimani@outlook.com>"]
 edition = "2021"
-#build = "build.rs"
-autotests = false
-description = "Simple REST webserver"
 license = "MIT"
 repository = "https://github.com/AzHicham/webserver.git"
-keywords = [ "webserver", "rest" ]
-categories = [ "application" ]
+homepage = "https://github.com/AzHicham/webserver.git"
 readme = "README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[workspace]
-members = []
-
-[features]
-default = []
-
-[dependencies]
-config = "0.13"
-anyhow = "1"
-tracing = { version = "0.1", features = ["std", "release_max_level_info"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing-appender = "0.2"
-serde = { version = "1.0", features = ["derive"] }
-rocket = { version = "0.5.0-rc.2", features = ["serde_json", "json"] }
-celery = "0.4.0-rcn.11"
+#build = "build.rs"
 
 [profile.dev]
 opt-level = 1
@@ -40,8 +24,3 @@ debug = true
 lto = true
 codegen-units = 1
 panic = 'unwind'
-
-
-[[bin]]
-name = "webserver"
-path = "src/main.rs"
