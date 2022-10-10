@@ -1,52 +1,48 @@
 use config::{Config, ConfigError, Environment, File, FileFormat};
 use serde::Deserialize;
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Server {
     pub host: String,
     pub port: u16,
     pub workers: u16,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
+pub struct ImageServer {
+    pub slide_dir: PathBuf,
+    pub compatible_file_extension: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct Logger {
-    pub file: Option<PathBuf>,
+    pub url: Option<PathBuf>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Database {
-    pub url: String,
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Settings {
     pub server: Server,
-    pub database: Database,
+    pub imageserver: ImageServer,
     pub logger: Logger,
-    pub broker: Broker,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Broker {
-    pub address: String,
 }
 
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
-        let run_mode = env::var("WEBSERVER_CONFIG_MODE").unwrap_or_else(|_| "development".into());
-        let config_dir = env::var("WEBSERVER_CONFIG_DIR").unwrap_or_else(|_| "config".into());
+        let run_mode = env::var("WEBSERVER_CONFIG_MODE").unwrap_or_else(|_| "production".into());
+        let config_mode_filename = format!("config/settings.{run_mode}");
+
         let s = Config::builder()
             // Start off by merging in the "default" configuration file
-            .add_source(File::new("config/default", FileFormat::Toml))
+            .add_source(File::new("config/settings", FileFormat::Toml))
             // Add in the current environment file
-            // Default to 'development' env
+            // Default to 'production' env
             // Note that this file is _optional_
-            .add_source(File::with_name(&format!("{}/{}", config_dir, run_mode)).required(false))
+            .add_source(File::new(config_mode_filename.as_str(), FileFormat::Toml).required(false))
             // Add in a local configuration file
             // This file shouldn't be checked in to git
-            .add_source(File::with_name(&format!("{}/local", config_dir)).required(false))
+            .add_source(File::new("config/settings.local", FileFormat::Toml).required(false))
             // Add in settings from the environment (with a prefix of APP)
             // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
             .add_source(Environment::with_prefix("WEBSERVER"))

@@ -1,0 +1,12 @@
+[server]
+host = "0.0.0.0"
+port = 5001
+workers = 1
+
+[imageserver]
+slide_dir = "/Users/hazimani/dev/slides"
+compatible_file_extension = [".ndpi", ".svs", ".tif"]
+
+[logger]
+file = "/tmp/webserver.log"
+

@@ -1,8 +1,8 @@
 use anyhow::Error;
-use tracing::debug;
 use imageserver::logger::init_logger;
 use imageserver::server::run;
 use imageserver::settings::Settings;
+use tracing::debug;
 
 #[rocket::main]
 async fn main() -> Result<(), Error> {

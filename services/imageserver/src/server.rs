@@ -1,17 +1,12 @@
-use crate::api::{analyze, status};
+use crate::common;
+use crate::imgsrv;
 use crate::settings::Settings;
 use anyhow::Error;
-use celery::broker::RedisBroker;
-use celery::Celery;
-use rocket::State;
-use rocket::{routes, Build, Rocket};
-use std::sync::Arc;
+use rocket::{Build, Rocket};
 use tracing::error;
 
 pub async fn run(settings: &Settings) -> Result<(), Error> {
-    let celery = init_celery(settings).await?;
-
-    if let Err(e) = build(settings)?.manage(celery).launch().await {
+    if let Err(e) = build(settings)?.launch().await {
         error!("Whoops! Server didn't launch!");
         // We drop the error to get a Rocket-formatted panic.
         drop(e);
@@ -28,22 +23,9 @@ fn build(settings: &Settings) -> Result<Rocket<Build>, Error> {
         ..Default::default()
     };
 
-    let rocket = rocket::custom(config).mount("/", routes![status, analyze]);
-    // .register("/", catchers![general_not_found, default_catcher])
+    let rocket = rocket::custom(config)
+        .mount("/", common::ROUTES.as_slice())
+        .mount("/imgsrv/", imgsrv::ROUTES.as_slice())
+        .manage(settings.clone());
     Ok(rocket)
-}
-
-async fn init_celery(settings: &Settings) -> celery::export::Result<Arc<Celery<RedisBroker>>> {
-    celery::app!(
-        broker = RedisBroker { &settings.broker.address },
-        tasks = [
-        ],
-        task_routes = [
-            "buggy_task" => "buggy-queue",
-            "*" => "celery",
-        ],
-        prefetch_count = 2,
-        heartbeat = Some(10),
-    )
-    .await
 }

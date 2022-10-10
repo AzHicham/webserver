@@ -1,10 +1,9 @@
-use crate::api::{analyze, status};
 use crate::settings::Settings;
+use crate::{authentication, common};
 use anyhow::Error;
 use celery::broker::RedisBroker;
 use celery::Celery;
-use rocket::State;
-use rocket::{routes, Build, Rocket};
+use rocket::{Build, Rocket};
 use std::sync::Arc;
 use tracing::error;
 
@@ -28,7 +27,9 @@ fn build(settings: &Settings) -> Result<Rocket<Build>, Error> {
         ..Default::default()
     };
 
-    let rocket = rocket::custom(config).mount("/", routes![status, analyze]);
+    let rocket = rocket::custom(config)
+        .mount("/", common::ROUTES.as_slice())
+        .mount("/oauth2", authentication::ROUTES.as_slice());
     // .register("/", catchers![general_not_found, default_catcher])
     Ok(rocket)
 }
