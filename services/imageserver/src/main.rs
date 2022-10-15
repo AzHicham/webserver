@@ -1,13 +1,11 @@
 use anyhow::Error;
-use imageserver::logger::init_logger;
-use imageserver::server::run;
-use imageserver::settings::Settings;
+use imageserver::{logger::init_logger, server::run, settings::Settings};
 use tracing::debug;
 
-#[rocket::main]
+#[actix_web::main]
 async fn main() -> Result<(), Error> {
     let settings = Settings::new()?;
-    let _log_guard = init_logger(&settings);
+    let _ = init_logger(&settings);
     debug!("{:?}", settings);
     run(&settings).await
 }

@@ -1,8 +1,6 @@
-use crate::settings::Settings;
-use crate::{authentication, common};
+use crate::{authentication, common, settings::Settings};
 use anyhow::Error;
-use celery::broker::RedisBroker;
-use celery::Celery;
+use celery::{broker::RedisBroker, Celery};
 use rocket::{Build, Rocket};
 use std::sync::Arc;
 use tracing::error;

@@ -2,8 +2,9 @@ use crate::settings::Settings;
 use rocket::futures::SinkExt;
 use std::io;
 use tracing::instrument::WithSubscriber;
-use tracing_subscriber::filter::LevelFilter;
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{
+    filter::LevelFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
 
 // Create a subscriber to collect all logs
 // that are created **in all threads**.

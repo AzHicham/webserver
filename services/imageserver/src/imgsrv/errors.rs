@@ -1,20 +1,27 @@
 use crate::common::schemas::ErrorMessage;
-use rocket::http::{ContentType, Status};
-use rocket::response::Responder;
-use rocket::serde::json::Json;
-use rocket::{response, Response};
-use std::error::Error;
-use std::io::Cursor;
-use std::{fmt, io};
+use actix_web::http::header::ContentType;
+use actix_web::http::StatusCode;
+use actix_web::{error, web::Json, HttpResponse, Responder};
+use derive_more::{Display, Error};
+use std::fmt::{Display, Formatter};
+use std::io;
 
-#[derive(Debug, Clone, Responder)]
+#[derive(Debug, Display, Error)]
 pub enum ImageServerError {
-    #[response(status = 404)]
-    IoError(Json<ErrorMessage>),
+    #[display(fmt = "internal error")]
+    IoError,
 }
 
-pub(crate) fn from_io_error(err: io::Error) -> ImageServerError {
-    ImageServerError::IoError(Json(ErrorMessage {
-        message: err.to_string(),
-    }))
+impl error::ResponseError for ImageServerError {
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::build(self.status_code())
+            .insert_header(ContentType::html())
+            .body(self.to_string())
+    }
+
+    fn status_code(&self) -> StatusCode {
+        match *self {
+            ImageServerError::IoError => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }

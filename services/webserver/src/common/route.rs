@@ -1,6 +1,5 @@
 use crate::common::schemas::DefaultPayload;
-use rocket::serde::json::serde_json::json;
-use rocket::serde::json::{Json, Value};
+use rocket::serde::json::{serde_json::json, Json, Value};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 

@@ -1,7 +1,6 @@
 use config::{Config, ConfigError, Environment, File, FileFormat};
 use serde::Deserialize;
-use std::env;
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Server {

@@ -1,8 +1,20 @@
-use rocket::http::ContentType;
-use rocket::response::Responder;
-use rocket::serde::{Deserialize, Serialize};
-use rocket::{response, Request, Response};
-use std::io::Cursor;
+use actix_web::body::BoxBody;
+use actix_web::web::Bytes;
+use actix_web::{http::header::ContentType, HttpRequest, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct TileInfo {
+    pub path: String,
+    pub col: u32,
+    pub row: u32,
+    pub tile_width: u32,
+    pub tile_height: u32,
+    pub level: u32,
+    pub format: String,
+    pub quality: u8,
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -26,11 +38,12 @@ pub struct Image {
     pub data: Vec<u8>,
 }
 
-impl<'r> Responder<'r, 'static> for Image {
-    fn respond_to(self, req: &'r Request<'_>) -> response::Result<'static> {
-        Response::build()
-            .header(ContentType::PNG)
-            .sized_body(self.data.len(), Cursor::new(self.data))
-            .ok()
+impl Responder for Image {
+    type Body = BoxBody;
+
+    fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+        HttpResponse::Ok()
+            .content_type(ContentType::png())
+            .body(Bytes::from(self.data))
     }
 }

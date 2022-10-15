@@ -1,21 +1,22 @@
-use crate::imgsrv::errors::{from_io_error, ImageServerError};
-use crate::imgsrv::schemas::{Image, SlideInfo};
-use crate::settings::Settings;
-use anyhow::{bail, Error};
-use image::buffer::ConvertBuffer;
-use image::codecs::png::CompressionType;
-use image::codecs::png::FilterType;
-use image::codecs::png::PngEncoder;
-use image::GrayImage;
-use image::ImageEncoder;
-use image::RgbaImage;
-use openslide::bindings::read_region;
-use openslide::{bindings, OpenSlide};
-use rocket::serde::json::Json;
-use rocket::State;
-use std::fs;
-use std::io::Cursor;
-use std::path::PathBuf;
+use crate::common::schemas::ErrorMessage;
+use crate::imgsrv::schemas::TileInfo;
+use crate::{
+    imgsrv::{errors::ImageServerError, schemas::Image},
+    settings::Settings,
+};
+use actix_web::{
+    get, web,
+    web::{Data, Json},
+};
+use cached::proc_macro::cached;
+use openslide_rs::{DeepZoomGenerator, Offset, OpenSlide};
+use std::cmp::min;
+use std::{
+    fs,
+    io::Cursor,
+    path::PathBuf,
+    sync::{Arc, RwLock},
+};
 
 #[get("/slide/compatible_file_extensions")]
 pub(crate) async fn compatible_file_extensions() -> Json<Vec<String>> {
@@ -23,17 +24,19 @@ pub(crate) async fn compatible_file_extensions() -> Json<Vec<String>> {
     Json(extensions)
 }
 
-#[get("/slide_size/<path>")]
+#[get("/slide_size/{path}")]
 pub(crate) async fn slide_size(
-    state: &State<Settings>,
     path: String,
+    state: Data<Settings>,
 ) -> Result<Json<f32>, ImageServerError> {
     let path = state.imageserver.slide_dir.as_path().join(path);
-    let size = fs::metadata(path).map_err(from_io_error)?.len();
+    let size = fs::metadata(path)
+        .map_err(|_| ImageServerError::IoError)?
+        .len();
     let size = size as f32 / 1024_u32.pow(3) as f32;
     Ok(Json(size))
 }
-
+/*
 #[get("/slide/<path>")]
 pub(crate) async fn slide(
     state: &State<Settings>,
@@ -56,44 +59,54 @@ pub(crate) async fn slide(
     };
 
     Ok(Json(info))
-}
+}*/
 
-#[get("/tile/<path>")]
-pub(crate) async fn thumbnail(
-    state: &State<Settings>,
-    path: String,
+#[get("/tile/{path}+{col}+{row}+{tile_width}+{tile_height}+{level}+{format}+{quality}")]
+pub(crate) async fn tile(
+    state: Data<Settings>,
+    info: web::Path<TileInfo>,
 ) -> Result<Image, ImageServerError> {
-    let path = state.imageserver.slide_dir.as_path().join(path);
-    let osr = bindings::open(path.to_str().unwrap()).unwrap();
-    let image = bindings::read_region(osr, 0, 0, 0, 512, 512).unwrap();
-    let image = vec_u32_to_u8(&image);
+    let input = info.into_inner();
+    println!("{input:?}");
+    let path = state.imageserver.slide_dir.as_path().join(input.path);
+
+    let tile_size = min(input.tile_width, input.tile_width);
+
+    let cached_osr = get_osr(path);
+    let osr = cached_osr.read().unwrap();
+    let deepzoom = DeepZoomGenerator::new(&*osr, tile_size, 0, false).unwrap();
+    let image = deepzoom
+        .get_tile(
+            input.level,
+            Offset {
+                x: input.col,
+                y: input.row,
+            },
+        )
+        .expect("fsdfsdf");
     let mut default = vec![];
-    // img.write_to(&mut Cursor::new(&mut default), image::ImageFormat::Png);
+    use image::buffer::ConvertBuffer;
+    let image: image::RgbImage = image.convert();
+
+    use image::codecs::png::CompressionType;
+    use image::codecs::png::FilterType;
+    use image::codecs::png::PngEncoder;
+    use image::ImageEncoder;
+
     let cursor = &mut Cursor::new(&mut default);
     let encoder = PngEncoder::new_with_quality(cursor, CompressionType::Fast, FilterType::NoFilter);
-    encoder.write_image(image.as_slice(), 512, 512, image::ColorType::Rgba8);
+    encoder.write_image(
+        image.as_raw().as_slice(),
+        tile_size,
+        tile_size,
+        image::ColorType::Rgb8,
+    );
+
     Ok(Image { data: default })
 }
 
-pub fn vec_u32_to_u8(data: &Vec<u32>) -> Vec<u8> {
-    // TODO: https://stackoverflow.com/questions/72631065/how-to-convert-a-u32-array-to-a-u8-array-in-place
-    // TODO: https://stackoverflow.com/questions/29037033/how-to-slice-a-large-veci32-as-u8
-    let capacity = 32 / 8 * data.len() as usize; // 32/8 == 4
-    let mut output = Vec::<u8>::with_capacity(capacity);
-    for &value in data {
-        output.push((value >> 16) as u8); // r
-        output.push((value >> 8) as u8); // g
-        output.push((value >> 0) as u8); // b
-        output.push((value >> 24) as u8); // a
-    }
-    output
-}
-
-fn get_osr(filename: PathBuf) -> Result<OpenSlide, Error> {
-    let os = OpenSlide::new(&filename).ok();
-    if let Some(os) = os {
-        Ok(os)
-    } else {
-        bail!("Error")
-    }
+#[cached(sync_writes = true)]
+fn get_osr(path: PathBuf) -> Arc<RwLock<OpenSlide>> {
+    let osr = OpenSlide::new(&path).expect("dfsf");
+    Arc::new(RwLock::new(osr))
 }

@@ -1,8 +1,9 @@
+use crate::common::route::status;
+use actix_web::{web, Scope};
+
 mod route;
 pub(crate) mod schemas;
 
-use rocket::Route;
-
-lazy_static! {
-    pub static ref ROUTES: Vec<Route> = routes![route::status];
+pub fn config() -> Scope {
+    web::scope("").service(status)
 }

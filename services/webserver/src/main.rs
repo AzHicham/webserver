@@ -1,8 +1,6 @@
 use anyhow::Error;
 use tracing::debug;
-use webserver::logger::init_logger;
-use webserver::server::run;
-use webserver::settings::Settings;
+use webserver::{logger::init_logger, server::run, settings::Settings};
 
 #[rocket::main]
 async fn main() -> Result<(), Error> {

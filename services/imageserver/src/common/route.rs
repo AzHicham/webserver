@@ -1,5 +1,5 @@
 use crate::common::schemas::Status;
-use rocket::serde::json::Json;
+use actix_web::{get, web::Json};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
