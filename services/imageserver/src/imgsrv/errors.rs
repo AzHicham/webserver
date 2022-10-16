@@ -1,12 +1,9 @@
-use crate::common::schemas::ErrorMessage;
 use actix_web::http::header::ContentType;
 use actix_web::http::StatusCode;
-use actix_web::{error, web::Json, HttpResponse, Responder};
+use actix_web::{error, HttpResponse};
 use derive_more::{Display, Error};
-use std::fmt::{Display, Formatter};
-use std::io;
 
-#[derive(Debug, Display, Error)]
+#[derive(Debug, Display, Error, Clone)]
 pub enum ImageServerError {
     #[display(fmt = "internal error")]
     IoError,

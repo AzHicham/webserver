@@ -5,7 +5,7 @@ use tracing::debug;
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
     let settings = Settings::new()?;
-    let _ = init_logger(&settings);
+    init_logger(&settings);
     debug!("{:?}", settings);
     run(&settings).await
 }

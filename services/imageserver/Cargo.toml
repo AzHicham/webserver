@@ -21,7 +21,8 @@ tracing-appender = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 actix-web = "4.2.1"
-openslide-rs = { path = "../../../openslide-rs"}
+
+openslide-rs = "0.1.0"
 cached = "0.39.0"
 derive_more = "0.99.17"
 image = "0.24.4"
