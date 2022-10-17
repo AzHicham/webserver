@@ -3,17 +3,16 @@ use crate::imgsrv::route::{
 };
 use actix_web::{web, Scope};
 
-mod errors;
 mod route;
 mod schemas;
 mod utils;
 
 pub fn config() -> Scope {
     web::scope("/imgsrv")
-        .service(compatible_file_extensions)
+        .service(tile)
         .service(slide_size)
         .service(regions_of_interest)
         .service(slide_info)
-        .service(tile)
+        .service(compatible_file_extensions)
         .service(thumbnail)
 }

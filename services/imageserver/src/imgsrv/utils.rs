@@ -1,11 +1,12 @@
-use crate::imgsrv::errors::ImageServerError;
-use crate::imgsrv::schemas::{EncodeType, EncodedImage};
-use image::codecs::jpeg;
-use image::codecs::png;
-use image::RgbaImage;
-use image::{ImageEncoder, ImageResult};
-use openslide_rs::{DeepZoomGenerator, Offset, OpenSlide, Size};
-use std::cmp::max;
+use crate::{
+    errors::ImageServerError,
+    imgsrv::schemas::{EncodeType, EncodedImage},
+};
+use image::{
+    codecs::{jpeg, png},
+    ImageEncoder, RgbaImage,
+};
+use openslide_rs::OpenSlide;
 use std::io::Cursor;
 
 pub fn encore_buffer_rgba(
@@ -31,7 +32,7 @@ pub fn encore_buffer_rgba(
                     image.height(),
                     image::ColorType::Rgba8,
                 )
-                .map_err(|_| ImageServerError::IoError)?;
+                .map_err(|_| ImageServerError::Internal)?;
         }
         EncodeType::Jpeg => {
             let encoder = jpeg::JpegEncoder::new_with_quality(cursor, quality);
@@ -42,7 +43,7 @@ pub fn encore_buffer_rgba(
                     image.height(),
                     image::ColorType::Rgba8,
                 )
-                .map_err(|_| ImageServerError::IoError)?;
+                .map_err(|_| ImageServerError::Internal)?;
         }
     };
 
@@ -70,30 +71,4 @@ pub fn get_slide_resolution(osr: &OpenSlide) -> Option<f32> {
         }
         _ => None,
     }
-}
-
-pub fn get_thumbnail_helper(
-    osr: &OpenSlide,
-    size: &Size,
-) -> Result<(Offset, u32, Size), ImageServerError> {
-    let dimension_level0 = osr
-        .get_level0_dimensions()
-        .map_err(|_| ImageServerError::IoError)?;
-
-    let downsample = (
-        dimension_level0.width as f64 / size.width as f64,
-        dimension_level0.height as f64 / size.height as f64,
-    );
-    let downsample = f64::max(downsample.0, downsample.1);
-
-    let level = osr
-        .get_best_level_for_downsample(downsample)
-        .map_err(|_| ImageServerError::IoError)?;
-
-    let size = osr
-        .get_level_dimensions(level)
-        .map_err(|_| ImageServerError::IoError)?;
-
-    let offset = Offset { x: 0, y: 0 };
-    Ok((offset, level, size))
 }

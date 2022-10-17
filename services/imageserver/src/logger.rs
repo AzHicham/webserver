@@ -1,15 +1,13 @@
 use crate::settings::Settings;
 use std::io;
-use tracing::instrument::WithSubscriber;
-use tracing_subscriber::{
-    filter::LevelFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter,
-};
+
+use tracing_subscriber::{filter::LevelFilter, fmt, layer::SubscriberExt, EnvFilter};
 
 // Create a subscriber to collect all logs
 // that are created **in all threads**.
 // Warning : this function will panic if called twice in the same program
 // https://docs.rs/tracing/latest/tracing/dispatcher/index.html
-pub fn init_logger(settings: &Settings) {
+pub fn init_logger(_settings: &Settings) {
     let default_level = LevelFilter::INFO;
     let rust_log =
         std::env::var(EnvFilter::DEFAULT_ENV).unwrap_or_else(|_| default_level.to_string());

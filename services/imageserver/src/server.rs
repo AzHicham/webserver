@@ -1,9 +1,8 @@
-use crate::{imgsrv, settings::Settings};
+use crate::{common, errors::ImageServerError, imgsrv, settings::Settings};
 use actix_web::{web, App, HttpServer};
-use anyhow::Error;
 use tracing::error;
 
-pub async fn run(settings: &Settings) -> Result<(), Error> {
+pub async fn run(settings: &Settings) -> Result<(), ImageServerError> {
     if let Err(e) = build(settings).await {
         error!("Whoops! Server didn't launch!");
         drop(e);
@@ -19,8 +18,8 @@ async fn build(settings: &Settings) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(settings.clone()))
-            //.service(common::config())
             .service(imgsrv::config())
+            .service(common::config())
     })
     .bind((host, port))?
     .workers(nb_workers as usize)

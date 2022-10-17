@@ -1,11 +1,8 @@
-use anyhow::Error;
-use imageserver::{logger::init_logger, server::run, settings::Settings};
-use tracing::debug;
+use imageserver::{errors::ImageServerError, logger::init_logger, server::run, settings::Settings};
 
 #[actix_web::main]
-async fn main() -> Result<(), Error> {
-    let settings = Settings::new()?;
+async fn main() -> Result<(), ImageServerError> {
+    let settings = Settings::new().map_err(|_| ImageServerError::ConfigError)?;
     init_logger(&settings);
-    debug!("{:?}", settings);
     run(&settings).await
 }

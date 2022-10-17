@@ -13,7 +13,7 @@ default = []
 
 [dependencies]
 config = "0.13"
-anyhow = "1"
+thiserror = "1.0.37"
 lazy_static = "1.4.0"
 tracing = { version = "0.1", features = ["std", "release_max_level_info"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -22,7 +22,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 actix-web = "4.2.1"
 
-openslide-rs = "0.1.0"
+openslide-rs = { path = "../../../openslide-rs"}
 cached = "0.39.0"
 derive_more = "0.99.17"
 image = "0.24.4"

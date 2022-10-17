@@ -1,6 +1,7 @@
-use actix_web::body::BoxBody;
-use actix_web::web::Bytes;
-use actix_web::{http::header::ContentType, HttpRequest, HttpResponse, Responder};
+use crate::errors::ImageServerError;
+use actix_web::{
+    body::BoxBody, http::header::ContentType, web::Bytes, HttpRequest, HttpResponse, Responder,
+};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -57,13 +58,6 @@ pub enum EncodeType {
     Jpeg,
 }
 
-#[derive(Debug)]
-pub enum EncodeQuality {
-    Low,
-    Medium,
-    High,
-}
-
 impl Responder for EncodedImage {
     type Body = BoxBody;
 
@@ -75,13 +69,13 @@ impl Responder for EncodedImage {
 }
 
 impl FromStr for EncodeType {
-    type Err = ();
+    type Err = ImageServerError;
 
     fn from_str(input: &str) -> Result<EncodeType, Self::Err> {
-        match input {
+        match input.to_lowercase().as_str() {
             "png" => Ok(EncodeType::Png),
             "jpg" | "jpeg" => Ok(EncodeType::Jpeg),
-            _ => Err(()),
+            _ => Err(ImageServerError::UnsupportedFormat),
         }
     }
 }
