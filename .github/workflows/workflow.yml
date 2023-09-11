@@ -13,7 +13,7 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: Install dependencies
@@ -30,7 +30,7 @@ jobs:
           build_type: [{name: "Release", flag: "--release"}, {name: "Debug", flag: ""}]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - uses: Swatinem/rust-cache@v1
@@ -44,7 +44,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - uses: actions-rs/toolchain@v1
